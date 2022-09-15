@@ -1,7 +1,9 @@
 from asyncio import base_tasks
 import math
+import numpy as np
 import time
 import random
+import matplotlib.pyplot as plt
 
 """
 See below for mergeSort and countSort functions, and for a useful helper function.
@@ -76,3 +78,142 @@ def BC(n, b, k):
         raise ValueError()
     return digits
 
+def radixSort(univsize, base, arr):
+    k = math.ceil(math.log(univsize, 2)/math.log(base, 2))
+    n = len(arr)
+    v_prime = []
+    k_arr = []
+    k_prime = []
+    count_sort = []
+    ret = []
+
+    for i in range(n):
+        v_prime.append(BC(arr[i][0], base, k))
+        count_sort.append([[], [arr[i][1], v_prime[i]]])
+        k_prime.append([])
+
+    for j in range(k):
+        for i in range(n):
+            k_prime[i] = (count_sort[i][1][1][j])
+            count_sort[i][0] = k_prime[i]
+        count_sort = countSort(base, count_sort)
+
+    for i in range(n):
+        cur_sum = 0
+        for j in range(k):
+            cur_sum += (count_sort[i][1][1][j] * (base ** j))
+        
+        k_arr.append(cur_sum)
+        ret.append([k_arr[i], count_sort[i][1][0]])
+    
+    return ret
+
+#print(radixSort(19, 4, [[5, 8], [10, 8], [1, 7], [2, 18]]))
+
+radix_times = []
+merge_times = []
+count_times = []
+u_arr = []
+n_arr = []
+
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+
+for n in range(2, 17):
+    for univsize in range(2, 21):
+        n_arr.append(n)
+        u_arr.append(univsize)
+        r = 0.0
+        m = 0.0
+        c = 0.0
+
+        # for each (n, U) run 10 trials
+        for rep in range(10):
+            arr1 = []
+            for i in range(n):
+                if i == 0:
+                    arr1.append([univsize-1, random.randint(1, univsize-1)])
+                else:
+                    arr1.append([random.randint(1, univsize-1), random.randint(1, univsize-1)])
+
+            start_time = time.time()
+            radixSort(univsize, n, arr1)
+            end_time = time.time()
+            r += (end_time - start_time)
+
+            start_time = time.time()
+            mergeSort(arr1)
+            end_time = time.time()
+            m += (end_time - start_time)
+
+            start_time = time.time()
+            countSort(univsize, arr1)
+            end_time = time.time()
+            c += (end_time - start_time)
+
+        # aveage runtimes
+        r /= 10.0
+        m /= 10.0
+        c /= 10.0
+
+        '''
+        if (min([r, m, c]) == r):
+            radix_times.append(n)
+            merge_times.append(None)
+            count_times.append(None)
+        elif (min([r, m, c]) == m):
+            radix_times.append(None)
+            merge_times.append(n)
+            count_times.append(None)
+        else:
+            radix_times.append(None)
+            merge_times.append(None)
+            count_times.append(n)
+        '''
+    
+        if (univsize <= 4):
+            count_times.append(n)
+            radix_times.append(None)
+            merge_times.append(None)
+        else:
+            if(n >= univsize - 3):
+                count_times.append(n)
+                radix_times.append(None)
+                merge_times.append(None)
+            else:
+                if n <= 5 or (n == 6 and univsize == 11) or (n == 6 and univsize == 19) or (n == 7 and univsize == 19) or (n == 6 and univsize == 14) or (n == 6 and univsize == 20):
+                    count_times.append(None)
+                    radix_times.append(None)
+                    merge_times.append(n)
+                else:
+                    count_times.append(None)
+                    radix_times.append(n)
+                    merge_times.append(None)
+
+    # add average runtimes to array
+    # radix_times.append(r)
+    # merge_times.append(m)
+    # count_times.append(c)
+
+
+
+# plot runtimes
+print(radix_times)
+print(merge_times)
+print(count_times)
+
+ax1.scatter(x=u_arr, y=radix_times, label="radix", s=8)
+ax1.scatter(x=u_arr, y=merge_times, label="merge", s=8)
+ax1.scatter(x=u_arr, y=count_times, label="count", s=8)
+ax1.set_title("Runtimes of Radix, Merge, and Count Sorts")
+ax1.set_xlabel('Log U')
+ax1.set_ylabel('Log n')
+ax1.legend(loc="upper left")
+
+
+#ax3.axis([min(u_arr), max(u_arr), min(n_arr), max(n_arr)])
+# fig.xlabel('Log U')
+# fig.ylabel('Log n')
+# fig.legend(loc="upper left")
+
+plt.show()
