@@ -51,7 +51,26 @@ class BinarySearchTree:
     ind: a number between 0 and n-1 (the number of nodes/objects)
     returns BinarySearchTree/Node or None
     '''
+
+    # Original select is wrong
     def select(self, ind):
+        left_size = 0
+        if self.left is not None:
+            left_size = self.left.size + 1
+
+        print(ind)
+        print(left_size)
+        print()
+        if ind == left_size:
+            return self
+        elif ind < left_size and self.left is not None:
+            self.left.select(ind)
+        elif ind > left_size and self.right is not None:
+            self.right.select(ind - left_size)
+        return None
+        
+            
+        '''
         left_size = 0
         if self.left is not None:
             left_size = self.left.size
@@ -62,6 +81,7 @@ class BinarySearchTree:
         if left_size < ind and self.right is not None:
             return self.right.select(ind)
         return None
+        '''
 
 
     '''
